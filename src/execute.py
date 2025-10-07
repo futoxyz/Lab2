@@ -1,6 +1,7 @@
 import os
+import datetime
 from src.logging import log_input, log_output
-from src.constants import NODIR, BADINPUT
+from src.constants import NODIR, NOFILE, BADINPUT
 
 def execute(line):
     log_input(line)
@@ -33,10 +34,28 @@ def execute(line):
                     print(f"ERROR: {BADINPUT}")
                     log_output(BADINPUT)
                     return
-                
-
+                try:
+                    with os.scandir(newdir) as files:
+                        for file in files:
+                            name = file.name
+                            size = file.stat().st_size
+                            mtime = datetime.datetime.fromtimestamp(file.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+                            mode = file.stat().st_mode
+                            print(f"{name} - size: {size} B last edited: {mtime} permission: {mode}")
+                            log_output(f"{name} - size: {size} B last edited: {mtime} permission: {mode}")
+                except:
+                    print(f"ERROR: {NODIR}")
+                    log_output(NODIR)
+                    return
             elif line[0] == "-l":
-                pass
+                with os.scandir(".") as files:
+                    for file in files:
+                        name = file.name
+                        size = file.stat().st_size
+                        mtime = datetime.datetime.fromtimestamp(file.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+                        mode = file.stat().st_mode
+                        print(f"{name} - size: {size} B last edited: {mtime} permission: {mode}")
+                        log_output(f"{name} - size: {size} B last edited: {mtime} permission: {mode}")
             elif len(line) == 1:
                 newdir = line.pop()
                 try:
@@ -49,6 +68,23 @@ def execute(line):
             else:
                 print(f"ERROR: {BADINPUT}")
                 log_output(BADINPUT)
+                return
+        case "cat":
+            line.remove("cat")
+            if line:
+                newdir = line.pop()
+            else:
+                print(f"ERROR: {BADINPUT}")
+                log_output(BADINPUT)
+                return
+            try:
+                with open(newdir) as f:
+                    for ln in f:
+                        print(ln.rstrip("\n"))
+                        log_output(ln.rstrip("\n"))
+            except:
+                print(f"ERROR: {NOFILE}")
+                log_output(NOFILE)
                 return
 
 
