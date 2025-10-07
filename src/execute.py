@@ -36,7 +36,7 @@ def execute(line):
                 
 
             elif line[0] == "-l":
-
+                pass
             elif len(line) == 1:
                 newdir = line.pop()
                 try:
