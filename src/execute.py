@@ -105,7 +105,7 @@ def execute(line):
                     log_output(NOFILE)
                     return
             elif line.pop() == "-r":
-                confirm()
+                confirm(newdir)
             else:
                 print(BADINPUT)
                 log_output(BADINPUT)
