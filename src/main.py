@@ -1,4 +1,3 @@
-from sys import stdin
 from os import getcwd
 from src.execute import execute
 

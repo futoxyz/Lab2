@@ -1,3 +1,5 @@
-NODIR: str = "No such directory"
-NOFILE: str = "No such file in directory"
-BADINPUT: str = "Wrong command input"
+NODIR: str = "ERROR: No such directory"
+NOFILE: str = "ERROR: No such file in directory"
+BADINPUT: str = "ERROR: Wrong command input"
+FAILED: str = "ERROR: Could not execute command"
+CANCEL: str = "Execution cancelled"

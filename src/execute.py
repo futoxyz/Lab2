@@ -1,6 +1,7 @@
 import os
 import datetime
 from src.logging import log_input, log_output
+from src.confirmation import confirm
 from src.constants import NODIR, NOFILE, BADINPUT
 
 def execute(line):
@@ -15,23 +16,24 @@ def execute(line):
                 newdir = "."
             
             if line:
-                print(f"ERROR: {BADINPUT}")
+                print(BADINPUT)
                 log_output(BADINPUT)
                 return
             try:
                 os.chdir(newdir)
             except:
-                print(f"ERROR: {NODIR}")
+                print(NODIR)
                 log_output(NODIR)
                 return
         case "ls":
             line.remove("ls")
             if not line:
                 print(os.listdir())
+                log_output(os.listdir())
             elif len(line) == 2:
                 newdir = line.pop()
                 if line.pop() != "-l":
-                    print(f"ERROR: {BADINPUT}")
+                    print(BADINPUT)
                     log_output(BADINPUT)
                     return
                 try:
@@ -44,7 +46,7 @@ def execute(line):
                             print(f"{name} - size: {size} B last edited: {mtime} permission: {mode}")
                             log_output(f"{name} - size: {size} B last edited: {mtime} permission: {mode}")
                 except:
-                    print(f"ERROR: {NODIR}")
+                    print(NODIR)
                     log_output(NODIR)
                     return
             elif line[0] == "-l":
@@ -62,11 +64,11 @@ def execute(line):
                     print(os.listdir(newdir))
                     log_output(os.listdir(newdir))
                 except:
-                    print(f"ERROR: {NODIR}")
+                    print(NODIR)
                     log_output(NODIR)
                     return
             else:
-                print(f"ERROR: {BADINPUT}")
+                print(BADINPUT)
                 log_output(BADINPUT)
                 return
         case "cat":
@@ -74,7 +76,7 @@ def execute(line):
             if line:
                 newdir = line.pop()
             else:
-                print(f"ERROR: {BADINPUT}")
+                print(BADINPUT)
                 log_output(BADINPUT)
                 return
             try:
@@ -83,9 +85,32 @@ def execute(line):
                         print(ln.rstrip("\n"))
                         log_output(ln.rstrip("\n"))
             except:
-                print(f"ERROR: {NOFILE}")
+                print(NOFILE)
                 log_output(NOFILE)
                 return
+
+        case "rm":
+            line.remove("rm")
+            if line:
+                newdir = line.pop()
+            else:
+                print(BADINPUT)
+                log_output(BADINPUT)
+                return
+            if not line:
+                try:
+                    os.remove(newdir)
+                except:
+                    print(NOFILE)
+                    log_output(NOFILE)
+                    return
+            elif line.pop() == "-r":
+                confirm()
+            else:
+                print(BADINPUT)
+                log_output(BADINPUT)
+                return
+
 
 
 
