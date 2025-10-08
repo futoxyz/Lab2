@@ -4,7 +4,8 @@ import datetime
 from src.logging import log_input, log_output
 from src.confirmation import confirm
 from src.fileordir import fileordir
-from src.constants import NODIR, NOFILE, NOFD, BADINPUT, FAILED, SUCCESS
+from src.getname import getname
+from src.constants import NODIR, NOFILE, NOFD, BADINPUT, FAILED, SUCCESS, BADNAME
 
 
 def execute(line):
@@ -93,7 +94,7 @@ def execute(line):
                 return
             if not line and fileordir(newdir) == "file":
                 try:
-                    shutil.copy(newdir, ".trash")
+                    shutil.copy(newdir, ".trash/")
                     os.remove(newdir)
                 except:
                     log_output(FAILED)
@@ -131,9 +132,7 @@ def execute(line):
                     log_output(FAILED)
             elif line.pop() == '-r' and not line:
                 try:
-                    if "/" in newdir:
-                        newdir = newdir.replace("/", "\\")
-                    shutil.copytree(newdir, f"{destdir}/{newdir.split('\\')[-1]}", dirs_exist_ok=True)
+                    shutil.copytree(newdir, f"{destdir}/{getname(newdir)}", dirs_exist_ok=True)
                     log_output(SUCCESS)
                 except:
                     log_output(FAILED)
@@ -167,6 +166,95 @@ def execute(line):
 
             else:
                 log_output(BADINPUT)
+
+        case "zip":
+            line.remove("zip")
+            if line:
+                name = line.pop()
+                if not line:
+                    log_output(BADINPUT)
+                    return
+                for sym in ["/", "\\", " ", ":", "*", "?", '"', "<", ">", "|"]:
+                    if sym in name:
+                        log_output(BADNAME)
+                        return
+                newdir = line.pop()
+                if fileordir(newdir) == "dir":
+                    try:
+                        shutil.make_archive(name, "zip", newdir)
+                        log_output(SUCCESS)
+                    except:
+                        log_output(FAILED)
+                else:
+                    log_output(NODIR)
+            else:
+                log_output(BADINPUT)
+
+        case "unzip":
+            line.remove("unzip")
+            if line:
+                newdir = line.pop()
+                if line:
+                    log_output(BADINPUT)
+                    return
+                if not os.path.isfile(newdir) or ".zip" not in getname(newdir):
+                    log_output(NOFILE)
+                    return
+                try:
+                    shutil.unpack_archive(newdir, getname(newdir).replace(".zip", ""), "zip")
+                    log_output(SUCCESS)
+                except:
+                    log_output(FAILED)
+                    return
+            else:
+                log_output(BADINPUT)
+                return
+
+        case "tar":
+            line.remove("tar")
+            if line:
+                name = line.pop()
+                if not line:
+                    log_output(BADINPUT)
+                    return
+                for sym in ["/", "\\", " ", ":", "*", "?", '"', "<", ">", "|"]:
+                    if sym in name:
+                        log_output(BADNAME)
+                        return
+                newdir = line.pop()
+                if fileordir(newdir) == "dir":
+                    try:
+                        shutil.make_archive(name, "gztar", newdir)
+                        log_output(SUCCESS)
+                    except:
+                        log_output(FAILED)
+                else:
+                    log_output(NODIR)
+            else:
+                log_output(BADINPUT)
+
+        case "untar":
+            line.remove("untar")
+            if line:
+                newdir = line.pop()
+                if line:
+                    log_output(BADINPUT)
+                    return
+                if not os.path.isfile(newdir) or ".tar.gz" not in getname(newdir):
+                    log_output(NOFILE)
+                    return
+                try:
+                    shutil.unpack_archive(newdir, getname(newdir).replace(".tar.gz",""), "gztar")
+                    log_output(SUCCESS)
+                except:
+                    log_output(FAILED)
+                    return
+            else:
+                log_output(BADINPUT)
+                return
+
+
+
 
         case _:
             log_output(BADINPUT)
