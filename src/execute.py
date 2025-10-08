@@ -1,8 +1,10 @@
 import os
+import shutil
 import datetime
 from src.logging import log_input, log_output
 from src.confirmation import confirm
-from src.constants import NODIR, NOFILE, BADINPUT
+from src.fileordir import fileordir
+from src.constants import NODIR, NOFILE, NOFD, BADINPUT, FAILED, SUCCESS
 
 def execute(line):
     log_input(line)
@@ -24,7 +26,7 @@ def execute(line):
             except:
                 print(NODIR)
                 log_output(NODIR)
-                return
+
         case "ls":
             line.remove("ls")
             if not line:
@@ -70,7 +72,7 @@ def execute(line):
             else:
                 print(BADINPUT)
                 log_output(BADINPUT)
-                return
+
         case "cat":
             line.remove("cat")
             if line:
@@ -87,7 +89,7 @@ def execute(line):
             except:
                 print(NOFILE)
                 log_output(NOFILE)
-                return
+
 
         case "rm":
             line.remove("rm")
@@ -109,7 +111,106 @@ def execute(line):
             else:
                 print(BADINPUT)
                 log_output(BADINPUT)
+
+
+        case "cp":
+            line.remove("cp")
+            if line:
+                destdir = line.pop()
+            else:
+                print(BADINPUT)
+                log_output(BADINPUT)
                 return
+            if line:
+                newdir = line.pop()
+            else:
+                print(BADINPUT)
+                log_output(BADINPUT)
+                return
+
+            if line and line.pop() == "-r":
+                try:
+                    os.listdir(newdir)
+                except:
+                    print(NODIR)
+                    log_output(NODIR)
+                    return
+                try:
+                    shutil.copytree(newdir, destdir, dirs_exist_ok=True)
+                    print(SUCCESS)
+                    log_output(SUCCESS)
+                except:
+                    print(FAILED)
+                    log_output(FAILED)
+                    return
+            elif not line:
+                try:
+                    os.listdir(destdir)
+                except:
+                    print(NODIR)
+                    log_output(NODIR)
+                    return
+                try:
+                    open(newdir).close()
+                except:
+                    print(NOFILE)
+                    log_output(NOFILE)
+                    return
+                try:
+                    shutil.copy(newdir, destdir)
+                    print(SUCCESS)
+                    log_output(SUCCESS)
+                except:
+                    print(FAILED)
+                    log_output(FAILED)
+
+
+        case "mv":
+            line.remove("mv")
+            if line:
+                destdir = line.pop()
+            else:
+                print(BADINPUT)
+                log_output(BADINPUT)
+                return
+            if line:
+                newdir = line.pop()
+            else:
+                print(BADINPUT)
+                log_output(BADINPUT)
+                return
+            if not line and fileordir(newdir) is None:
+                print(NOFD)
+                log_output(NOFD)
+                return
+            elif not line:
+                try:
+                    os.listdir(destdir)
+                except:
+                    print(NODIR)
+                    log_output(NODIR)
+                    return
+                try:
+                    shutil.move(newdir, destdir)
+                    print(SUCCESS)
+                    log_output(SUCCESS)
+                except:
+                    print(FAILED)
+                    log_output(FAILED)
+                    return
+            else:
+                print(BADINPUT)
+                log_output(BADINPUT)
+
+                
+
+
+
+
+
+        case _:
+            print(BADINPUT)
+            log_output(BADINPUT)
 
 
 
