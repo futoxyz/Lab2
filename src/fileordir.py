@@ -1,12 +1,9 @@
 import os
 
 def fileordir(dir):
-    try:
-        os.listdir(dir)
-        return "Dir"
-    except:
-        try:
-            open(dir).close()
-            return "File"
-        except:
-            return
+    if os.path.isdir(dir):
+        return "dir"
+    elif os.path.isfile(dir):
+        return "file"
+    else:
+        return
