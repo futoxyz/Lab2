@@ -1,203 +1,210 @@
 import os
 import shutil
 import datetime
-from src.logging import log, hist
+from src.data import Data
 from src.confirmation import confirm
 from src.getname import getname
 from src.constants import *
 
 
-def execute(line, initdir):
-    log(line, initdir, False)
+def execute(line, data):
+    data.log(line, False)
     line = line.split()
     if line[0] != "history":
-        hist(" ".join(line), initdir)
+        data.hist(" ".join(line))
     match line[0]:
         case "cd":
             line.remove("cd")
             if line:
-                newdir = line.pop()
+                new_dir = line.pop()
             else:
-                newdir = "."
+                new_dir = "."
             if line:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
                 return
             try:
-                os.chdir(newdir)
+                os.chdir(new_dir)
             except:
-                log(NODIR, initdir)
+                data.log(NODIR)
 
         case "ls":
             line.remove("ls")
             if not line:
-                log(os.listdir(), initdir)
+                data.log(os.listdir())
             else:
-                newdir = line.pop()
-                if not os.path.isdir(newdir) and newdir != "-l":
-                    log(NODIR, initdir)
+                new_dir = line.pop()
+                if not os.path.isdir(new_dir) and new_dir != "-l":
+                    data.log(NODIR)
                     return
-                elif newdir == "-l":
-                    newdir = "."
+                elif new_dir == "-l":
+                    new_dir = "."
                     line.append("-l")
                 if not line:
-                    log(os.listdir(newdir), initdir)
+                    data.log(os.listdir(new_dir))
                 elif line.pop() == "-l" and not line:
-                    with os.scandir(newdir) as files:
+                    with os.scandir(new_dir) as files:
                         for file in files:
                             name = file.name
                             size = file.stat().st_size
                             mtime = datetime.datetime.fromtimestamp(file.stat().st_mtime).strftime("%d.%m.%Y %H:%M:%S")
                             mode = file.stat().st_mode
-                            log(f"{name} - Size: {size} Bytes Last edited: {mtime} Permission: {mode}", initdir)
+                            data.log(f"{name} - Size: {size} Bytes Last edited: {mtime} Permission: {mode}")
                 else:
-                    log(BADINPUT, initdir)
+                    data.log(BADINPUT)
 
         case "cat":
             line.remove("cat")
             if line:
-                newdir = line.pop()
-                if not os.path.isfile(newdir):
-                    log(NOFILE, initdir)
+                new_dir = line.pop()
+                if not os.path.isfile(new_dir):
+                    data.log(NOFILE)
                     return
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
                 return
             if line:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
                 return
             try:
-                with open(newdir) as f:
+                with open(new_dir) as f:
                     for ln in f:
-                        log(ln.rstrip("\n"), initdir)
+                        data.log(ln.rstrip("\n"))
             except:
-                log(NOFILE, initdir)
+                data.log(NOFILE)
 
         case "rm":
             line.remove("rm")
             if line:
-                newdir = line.pop()
-                if not os.path.isdir(newdir) and not os.path.isfile(newdir):
-                    log(NOFD, initdir)
+                new_dir = line.pop()
+                if not os.path.isdir(new_dir) and not os.path.isfile(new_dir):
+                    data.log(NOFD)
                     return
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
                 return
-            if not line and os.path.isfile(newdir):
+            if not line and os.path.isfile(new_dir):
                 try:
-                    shutil.copy(newdir, f"{initdir}/.trash/")
-                    os.remove(newdir)
+                    shutil.copy(new_dir, f"{data.init_dir}/.trash/")
+                    os.remove(new_dir)
+                    data.log(SUCCESS)
+                    data = Data(data.init_dir, last_exec="rm", fr_dir=new_dir)
                 except:
-                    log(FAILED, initdir)
+                    data.log(FAILED)
             elif not line:
-                log(NOFILE, initdir)
+                data.log(NOFILE)
                 return
-            elif line.pop() == '-r' and not line and os.path.isdir(newdir):
-                confirm(newdir, initdir)
+            elif line.pop() == '-r' and not line and os.path.isdir(new_dir):
+                if confirm(new_dir, data):
+                    data = Data(data.init_dir, last_exec="rm", fr_dir=new_dir)
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
 
         case "cp":
             line.remove("cp")
             if line:
-                destdir = line.pop()
-                if not os.path.isdir(destdir):
-                    log(NODIR, initdir)
+                dest_dir = line.pop()
+                if not os.path.isdir(dest_dir):
+                    data.log(NODIR)
                     return
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
                 return
             if line:
-                newdir = line.pop()
-                if not os.path.isdir(newdir) and not os.path.isfile(newdir):
-                    log(NOFD, initdir)
+                new_dir = line.pop()
+                if not os.path.isdir(new_dir) and not os.path.isfile(new_dir):
+                    data.log(NOFD)
                     return
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
                 return
-            if not line and os.path.isfile(newdir):
+            if not line and os.path.isfile(new_dir):
                 try:
-                    shutil.copy(newdir, destdir)
-                    log(SUCCESS, initdir)
+                    shutil.copy(new_dir, dest_dir)
+                    data.log(SUCCESS)
+                    data = Data(data.init_dir, last_exec="cp", fr_dir=new_dir, sc_dir=dest_dir)
+                    return
                 except:
-                    log(FAILED, initdir)
+                    data.log(FAILED)
             elif line and line.pop() == '-r' and not line:
                 try:
-                    shutil.copytree(newdir, f"{destdir}/{getname(newdir)}", dirs_exist_ok=True)
-                    log(SUCCESS, initdir)
+                    shutil.copytree(new_dir, f"{dest_dir}/{getname(new_dir, True)}", dirs_exist_ok=True)
+                    data.log(SUCCESS)
                 except:
-                    log(FAILED, initdir)
+                    data.log(FAILED)
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
 
         case "mv":
             line.remove("mv")
             if line:
-                destdir = line.pop()
-                if not os.path.isdir(destdir):
-                    log(NODIR, initdir)
+                dest_dir = line.pop()
+                if not os.path.isdir(dest_dir):
+                    data.log(NODIR)
                     return
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
                 return
             if line:
-                newdir = line.pop()
-                if not os.path.isdir(newdir) and not os.path.isfile(newdir):
-                    log(NOFD, initdir)
+                new_dir = line.pop()
+                if not os.path.isdir(new_dir) and not os.path.isfile(new_dir):
+                    data.log(NOFD)
                     return
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
                 return
             if not line:
                 try:
-                    shutil.move(newdir, destdir)
-                    log(SUCCESS, initdir)
+                    shutil.move(new_dir, dest_dir)
+                    data.log(SUCCESS)
+                    data = Data(data.init_dir, last_exec="mv", fr_dir=new_dir, sc_dir=dest_dir)
+                    return
                 except:
-                    log(FAILED, initdir)
+                    data.log(FAILED)
 
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
 
         case "zip":
             line.remove("zip")
             if line:
                 name = line.pop()
                 if not line:
-                    log(BADINPUT, initdir)
+                    data.log(BADINPUT)
                     return
                 for sym in ["/", "\\", " ", ":", "*", "?", '"', "<", ">", "|"]:
                     if sym in name:
-                        log(BADNAME, initdir)
+                        data.log(BADNAME)
                         return
-                newdir = line.pop()
-                if os.path.isdir(newdir):
+                new_dir = line.pop()
+                if os.path.isdir(new_dir):
                     try:
-                        shutil.make_archive(name, "zip", newdir)
-                        log(SUCCESS, initdir)
+                        shutil.make_archive(name, "zip", new_dir)
+                        data.log(SUCCESS)
                     except:
-                        log(FAILED, initdir)
+                        data.log(FAILED)
                 else:
-                    log(NODIR, initdir)
+                    data.log(NODIR)
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
 
         case "unzip":
             line.remove("unzip")
             if line:
-                newdir = line.pop()
+                new_dir = line.pop()
                 if line:
-                    log(BADINPUT, initdir)
+                    data.log(BADINPUT)
                     return
-                if not os.path.isfile(newdir) or ".zip" not in getname(newdir):
-                    log(NOFILE, initdir)
+                if not os.path.isfile(new_dir) or ".zip" not in getname(new_dir):
+                    data.log(NOFILE)
                     return
                 try:
-                    shutil.unpack_archive(newdir, getname(newdir).replace(".zip", ""), "zip")
-                    log(SUCCESS, initdir)
+                    shutil.unpack_archive(new_dir, getname(new_dir).replace(".zip", ""), "zip")
+                    data.log(SUCCESS)
                 except:
-                    log(FAILED, initdir)
+                    data.log(FAILED)
                     return
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
                 return
 
         case "tar":
@@ -205,74 +212,84 @@ def execute(line, initdir):
             if line:
                 name = line.pop()
                 if not line:
-                    log(BADINPUT, initdir)
+                    data.log(BADINPUT)
                     return
                 for sym in ["/", "\\", " ", ":", "*", "?", '"', "<", ">", "|"]:
                     if sym in name:
-                        log(BADNAME, initdir)
+                        data.log(BADNAME)
                         return
-                newdir = line.pop()
-                if os.path.isdir(newdir):
+                new_dir = line.pop()
+                if os.path.isdir(new_dir):
                     try:
-                        shutil.make_archive(name, "gztar", newdir)
-                        log(SUCCESS, initdir)
+                        shutil.make_archive(name, "gztar", new_dir)
+                        data.log(SUCCESS)
                     except:
-                        log(FAILED, initdir)
+                        data.log(FAILED)
                 else:
-                    log(NODIR, initdir)
+                    data.log(NODIR)
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
 
         case "untar":
             line.remove("untar")
             if line:
-                newdir = line.pop()
+                new_dir = line.pop()
                 if line:
-                    log(BADINPUT, initdir)
+                    data.log(BADINPUT)
                     return
-                if not os.path.isfile(newdir) or ".tar.gz" not in getname(newdir):
-                    log(NOFILE, initdir)
+                if not os.path.isfile(new_dir) or ".tar.gz" not in getname(new_dir):
+                    data.log(NOFILE)
                     return
                 try:
-                    shutil.unpack_archive(newdir, getname(newdir).replace(".tar.gz", ""), "gztar")
-                    log(SUCCESS, initdir)
+                    shutil.unpack_archive(new_dir, getname(new_dir).replace(".tar.gz", ""), "gztar")
+                    data.log(SUCCESS)
                 except:
-                    log(FAILED, initdir)
+                    data.log(FAILED)
                     return
             else:
-                log(BADINPUT, initdir)
+                data.log(BADINPUT)
                 return
 
         case "history":
             line.remove("history")
             if not line:
-                with open(f"{initdir}\\.history") as f:
+                with open(f"{data.init_dir}\\.history") as f:
                     f = f.readlines()
                     if len(f) >= 5:
                         for i in range(5):
-                            log(f"#{i + 1} {f[len(f)-i-1].rstrip("\n")}", initdir)
+                            a = f[len(f) - i - 1].rstrip("\n")
+                            data.log(f"#{i + 1} {a}")
                     else:
                         for ln in f:
-                            log(f"#{f.index(ln) + 1} {ln.rstrip("\n")}", initdir)
+                            a = ln.rstrip("\n")
+                            data.log(f"#{f.index(ln) + 1} {a}")
             else:
                 a = line.pop()
                 try:
                     a = int(a)
                 except:
-                    log(BADINPUT, initdir)
+                    data.log(BADINPUT)
                     return
                 if a <= 0:
-                    log(BADINPUT, initdir)
+                    data.log(BADINPUT)
                     return
-                with open(f"{initdir}\\.history") as f:
+                with open(f"{data.init_dir}\\.history") as f:
                     f = f.readlines()
                     if not line and len(f) >= a:
                         for i in range(a):
-                            log(f"#{i + 1} {f[len(f) - i - 1].rstrip("\n")}", initdir)
+                            b = f[len(f) - i - 1].rstrip("\n")
+                            data.log(f"#{i + 1} {b}")
                     elif len(f) < a:
-                        log(OUTHIS, initdir)
+                        data.log(OUTHIS)
                     else:
-                        log(BADINPUT, initdir)
+                        data.log(BADINPUT)
+
+        case "undo":
+            line.remove("undo")
+            if not line:
+                data.undo()
+            else:
+                data.log(BADINPUT)
 
 
 
@@ -280,4 +297,4 @@ def execute(line, initdir):
 
 
         case _:
-            log(BADINPUT, initdir)
+            data.log(BADINPUT)
