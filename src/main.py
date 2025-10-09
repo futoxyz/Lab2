@@ -2,9 +2,9 @@ from os import getcwd, chdir
 from src.execute import execute
 
 def run():
-    chdir("C:/Users/fedor/Downloads")
+    initdir = getcwd()
     while inp := input(f"{getcwd()} > "):
-        execute(inp)
+        execute(inp, initdir)
 
         
 

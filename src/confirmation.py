@@ -1,28 +1,24 @@
 import shutil
-import os
-from src.fileordir import fileordir
-from src.logging import log_input, log_output
-from src.constants import NODIR, FAILED, CANCEL, INVANS, RMREST
+from src.logging import log
+from src.constants import FAILED, CANCEL, INVANS, RMREST, SUCCESS
 
-def confirm(newdir):
-    if fileordir(newdir) != "dir":
-        log_output(NODIR)
-        return
+def confirm(newdir, initdir):
     if newdir == ".." or newdir == "/":
-        log_output(RMREST)
+        log(RMREST, initdir)
         return
     enter = str(input("Do you want to continue? (Y/N) > "))
-    log_input(enter)
+    log(enter, initdir, False)
     while enter not in ["Y", "y", "N", "n"]:
-        log_output(INVANS)
+        log(INVANS, initdir)
         enter = str(input("Do you want to continue? (Y/N) > "))
-        log_input(enter)
+        log(enter, initdir, False)
     if enter in ["Y", "y"]:
         try:
-            shutil.copytree(newdir, ".trash/")
+            shutil.copytree(newdir, f"{initdir}/.trash/")
             shutil.rmtree(newdir)
+            log(SUCCESS, initdir)
         except:
-            log_output(FAILED)
+            log(FAILED, initdir)
     else:
-        log_output(CANCEL)
+        log(CANCEL, initdir)
 
