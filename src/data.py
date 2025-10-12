@@ -25,31 +25,28 @@ class Data:
         match self.last_exec:
             case "mv":
                 try:
-                    if os.path.isdir(self.fr_dir):
-                        shutil.move(f"{self.sc_dir}\\{getname(self.fr_dir, True)}", f"{getname(self.fr_dir, True)}\\{self.sc_dir}")
-                    if os.path.isfile(self.fr_dir):
-                        shutil.move(f"{self.sc_dir}\\{getname(self.fr_dir)}", f"{getname(self.fr_dir, True)}\\{self.sc_dir}")
+                    shutil.move(f"{self.sc_dir}\\{getname(self.fr_dir)}", f"{self.fr_dir}\\..")
                     Data.log(self, SUCCESS)
-                    self.last_exec = None
+                    return True
                 except:
                     Data.log(self, FAILED)
 
             case "cp":
                 try:
                     if os.path.isdir(self.fr_dir):
-                        shutil.rmtree(f"{self.sc_dir}\\{getname(self.fr_dir, True)}")
-                    if os.path.isfile(self.fr_dir):
                         shutil.rmtree(f"{self.sc_dir}\\{getname(self.fr_dir)}")
+                    if os.path.isfile(self.fr_dir):
+                        os.remove(f"{self.sc_dir}\\{getname(self.fr_dir)}")
                     Data.log(self, SUCCESS)
-                    self.last_exec = None
+                    return True
                 except:
                     Data.log(self, FAILED)
 
             case "rm":
                 try:
-                    shutil.move(f"{self.init_dir}\\.trash\\{self.fr_dir}", getname(dir, True))
+                    shutil.move(f"{self.init_dir}\\.trash\\{getname(self.fr_dir)}", f"{self.fr_dir}\\..")
                     Data.log(self, SUCCESS)
-                    self.last_exec = None
+                    return True
                 except:
                     Data.log(self, FAILED)
 

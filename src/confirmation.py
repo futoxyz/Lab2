@@ -1,9 +1,9 @@
 import shutil
-from src.data import Data
-from src.constants import FAILED, CANCEL, INVANS, RMREST, SUCCESS
+from src.getname import getname
+from src.constants import INVANS, RMREST
 
-def confirm(newdir, data):
-    if newdir == ".." or newdir == "/":
+def confirm(new_dir, data):
+    if new_dir == ".." or new_dir == "/":
         data.log(RMREST)
         return
     enter = str(input("Do you want to continue? (Y/N) > "))
@@ -14,14 +14,12 @@ def confirm(newdir, data):
         data.log(enter, False)
     if enter in ["Y", "y"]:
         try:
-            shutil.copytree(newdir, f"{data.init_dir}/.trash/")
-            shutil.rmtree(newdir)
-            data.log(SUCCESS)
+            shutil.copytree(new_dir, f"{data.init_dir}\\.trash\\{getname(new_dir, True)}")
+            shutil.rmtree(new_dir)
             return True
         except:
-            data.log(FAILED)
             return
+
     else:
-        data.log(CANCEL)
         return
 

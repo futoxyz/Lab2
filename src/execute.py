@@ -1,7 +1,6 @@
 import os
 import shutil
 import datetime
-from src.data import Data
 from src.confirmation import confirm
 from src.getname import getname
 from src.constants import *
@@ -84,10 +83,11 @@ def execute(line, data):
                 return
             if not line and os.path.isfile(new_dir):
                 try:
-                    shutil.copy(new_dir, f"{data.init_dir}/.trash/")
+                    shutil.copy(new_dir, f"{data.init_dir}\\.trash\\")
                     os.remove(new_dir)
                     data.log(SUCCESS)
-                    data = Data(data.init_dir, last_exec="rm", fr_dir=new_dir)
+                    data.last_exec = "rm"
+                    data.fr_dir = os.path.abspath(new_dir)
                 except:
                     data.log(FAILED)
             elif not line:
@@ -95,7 +95,9 @@ def execute(line, data):
                 return
             elif line.pop() == '-r' and not line and os.path.isdir(new_dir):
                 if confirm(new_dir, data):
-                    data = Data(data.init_dir, last_exec="rm", fr_dir=new_dir)
+                    data.log(SUCCESS)
+                    data.last_exec = "rm"
+                    data.fr_dir = os.path.abspath(new_dir)
             else:
                 data.log(BADINPUT)
 
@@ -121,13 +123,18 @@ def execute(line, data):
                 try:
                     shutil.copy(new_dir, dest_dir)
                     data.log(SUCCESS)
-                    data = Data(data.init_dir, last_exec="cp", fr_dir=new_dir, sc_dir=dest_dir)
+                    data.last_exec = "cp"
+                    data.fr_dir = os.path.abspath(new_dir)
+                    data.sc_dir = os.path.abspath(dest_dir)
                     return
                 except:
                     data.log(FAILED)
             elif line and line.pop() == '-r' and not line:
                 try:
                     shutil.copytree(new_dir, f"{dest_dir}/{getname(new_dir, True)}", dirs_exist_ok=True)
+                    data.last_exec = "cp"
+                    data.fr_dir = os.path.abspath(new_dir)
+                    data.sc_dir = os.path.abspath(dest_dir)
                     data.log(SUCCESS)
                 except:
                     data.log(FAILED)
@@ -156,7 +163,9 @@ def execute(line, data):
                 try:
                     shutil.move(new_dir, dest_dir)
                     data.log(SUCCESS)
-                    data = Data(data.init_dir, last_exec="mv", fr_dir=new_dir, sc_dir=dest_dir)
+                    data.last_exec = "mv"
+                    data.fr_dir = os.path.abspath(new_dir)
+                    data.sc_dir = os.path.abspath(dest_dir)
                     return
                 except:
                     data.log(FAILED)
@@ -284,11 +293,14 @@ def execute(line, data):
                     else:
                         data.log(BADINPUT)
 
+        case "devlog":
+            print(data.init_dir, data.last_exec)
+
         case "undo":
             line.remove("undo")
-            if not line:
-                data.undo()
-            else:
+            if not line and data.undo():
+                data.last_exec = None
+            elif line:
                 data.log(BADINPUT)
 
 
