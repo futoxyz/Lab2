@@ -1,267 +1,203 @@
 import os
 import shutil
 import datetime
+from argparse import ArgumentParser
 from src.confirmation import confirm
 from src.getname import getname
 from src.constants import *
 
 
-def execute(line, data):
-    data.log(line, False)
-    line = line.split()
-    if line[0] != "history":
-        data.hist(" ".join(line))
-    match line[0]:
+def execute(inp, data):
+    data.log(inp, False)
+    inp = inp.split()
+    parse = ArgumentParser(prog="command", exit_on_error=False)
+    if inp[0] != "history":
+        data.hist(inp)
+    match inp[0]:
         case "cd":
-            line.remove("cd")
-            if line:
-                new_dir = line.pop()
-            else:
-                new_dir = "."
-            if line:
+            inp.remove("cd")
+            parse.add_argument("new_dir", nargs="?")
+            line = parse.parse_args(inp)
+            if not line.new_dir:
+                line.new_dir = "."
+            try:
+                    os.chdir(line.new_dir)
+            except:
+                    data.log(NODIR)
+        case "ls":
+            inp.remove("ls")
+            parse.add_argument("-l", action="store_true")
+            parse.add_argument("new_dir", nargs="?")
+            try:
+                line = parse.parse_args(inp)
+            except:
                 data.log(BADINPUT)
                 return
-            try:
-                os.chdir(new_dir)
-            except:
+            if not line.new_dir:
+                line.new_dir = "."
+            if not os.path.isdir((line.new_dir)):
                 data.log(NODIR)
-
-        case "ls":
-            line.remove("ls")
-            if not line:
-                data.log(os.listdir())
+                return
+            if not line.l:
+                data.log(os.listdir(line.new_dir))
             else:
-                new_dir = line.pop()
-                if not os.path.isdir(new_dir) and new_dir != "-l":
-                    data.log(NODIR)
-                    return
-                elif new_dir == "-l":
-                    new_dir = "."
-                    line.append("-l")
-                if not line:
-                    data.log(os.listdir(new_dir))
-                elif line.pop() == "-l" and not line:
-                    with os.scandir(new_dir) as files:
-                        for file in files:
-                            name = file.name
-                            size = file.stat().st_size
-                            mtime = datetime.datetime.fromtimestamp(file.stat().st_mtime).strftime("%d.%m.%Y %H:%M:%S")
-                            mode = file.stat().st_mode
-                            data.log(f"{name} - Size: {size} Bytes Last edited: {mtime} Permission: {mode}")
-                else:
-                    data.log(BADINPUT)
+                with os.scandir(line.new_dir) as files:
+                    ls = []
+                    for file in files:
+                        fname = file.name
+                        size = file.stat().st_size
+                        mtime = datetime.datetime.fromtimestamp(file.stat().st_mtime).strftime("%d.%m.%Y %H:%M:%S")
+                        mode = file.stat().st_mode
+                        ls.append(f"{fname} - Size: {size} Bytes Last edited: {mtime} Permission: {mode}\n")
+                    data.log("".join(ls)[:-1])
 
         case "cat":
-            line.remove("cat")
-            if line:
-                new_dir = line.pop()
-                if not os.path.isfile(new_dir):
-                    data.log(NOFILE)
-                    return
-            else:
-                data.log(BADINPUT)
-                return
-            if line:
-                data.log(BADINPUT)
-                return
+            inp.remove("cat")
+            parse.add_argument("new_dir")
             try:
-                with open(new_dir) as f:
-                    for ln in f:
-                        data.log(ln.rstrip("\n"))
+                line = parse.parse_args(inp)
             except:
+                data.log(BADINPUT)
+                return
+            if not os.path.isfile(line.new_dir):
                 data.log(NOFILE)
+            else:
+                with open(line.new_dir) as f:
+                    data.log("".join(f))
 
         case "rm":
-            line.remove("rm")
-            if line:
-                new_dir = line.pop()
-                if not os.path.isdir(new_dir) and not os.path.isfile(new_dir):
-                    data.log(NOFD)
-                    return
-            else:
+            inp.remove("rm")
+            parse.add_argument("-r", action="store_true")
+            parse.add_argument("new_dir")
+            try:
+                line = parse.parse_args(inp)
+            except:
                 data.log(BADINPUT)
                 return
-            if not line and os.path.isfile(new_dir):
-                try:
-                    shutil.copy(new_dir, f"{data.init_dir}\\.trash\\")
-                    os.remove(new_dir)
+            if os.path.isfile(line.new_dir) and not line.r:
+                os.remove(line.new_dir)
+            elif os.path.isdir(line.new_dir) and line.r and confirm(line.new_dir, data):
                     data.log(SUCCESS)
                     data.last_exec = "rm"
-                    data.fr_dir = os.path.abspath(new_dir)
-                except:
-                    data.log(FAILED)
-            elif not line:
-                data.log(NOFILE)
-                return
-            elif line.pop() == '-r' and not line and os.path.isdir(new_dir):
-                if confirm(new_dir, data):
-                    data.log(SUCCESS)
-                    data.last_exec = "rm"
-                    data.fr_dir = os.path.abspath(new_dir)
+                    data.fr_dir = os.path.abspath(line.new_dir)
             else:
-                data.log(BADINPUT)
+                data.log(NOFD)
 
         case "cp":
-            line.remove("cp")
-            if line:
-                dest_dir = line.pop()
-                if not os.path.isdir(dest_dir):
-                    data.log(NODIR)
-                    return
-            else:
+            inp.remove("cp")
+            parse.add_argument("-r", action="store_true")
+            parse.add_argument("new_dir")
+            parse.add_argument("dest_dir")
+            try:
+                line = parse.parse_args(inp)
+            except:
                 data.log(BADINPUT)
                 return
-            if line:
-                new_dir = line.pop()
-                if not os.path.isdir(new_dir) and not os.path.isfile(new_dir):
-                    data.log(NOFD)
-                    return
+            if os.path.isfile(line.new_dir) and os.path.isdir(line.new_dir) and not line.r:
+                shutil.copy(line.new_dir, line.dest_dir)
+                data.log(SUCCESS)
+                data.last_exec = "cp"
+                data.fr_dir = os.path.abspath(line.new_dir)
+                data.sc_dir = os.path.abspath(line.dest_dir)
+            elif os.path.isdir(line.new_dir) and os.path.isdir(line.new_dir) and line.r:
+                shutil.copytree(line.new_dir, f"{line.dest_dir}/{getname(line.new_dir, True)}", dirs_exist_ok=True)
+                data.last_exec = "cp"
+                data.fr_dir = os.path.abspath(line.new_dir)
+                data.sc_dir = os.path.abspath(line.dest_dir)
+                data.log(SUCCESS)
             else:
-                data.log(BADINPUT)
-                return
-            if not line and os.path.isfile(new_dir):
-                try:
-                    shutil.copy(new_dir, dest_dir)
-                    data.log(SUCCESS)
-                    data.last_exec = "cp"
-                    data.fr_dir = os.path.abspath(new_dir)
-                    data.sc_dir = os.path.abspath(dest_dir)
-                    return
-                except:
-                    data.log(FAILED)
-            elif line and line.pop() == '-r' and not line:
-                try:
-                    shutil.copytree(new_dir, f"{dest_dir}/{getname(new_dir, True)}", dirs_exist_ok=True)
-                    data.last_exec = "cp"
-                    data.fr_dir = os.path.abspath(new_dir)
-                    data.sc_dir = os.path.abspath(dest_dir)
-                    data.log(SUCCESS)
-                except:
-                    data.log(FAILED)
-            else:
-                data.log(BADINPUT)
+                data.log(NOFD)
 
         case "mv":
-            line.remove("mv")
-            if line:
-                dest_dir = line.pop()
-                if not os.path.isdir(dest_dir):
-                    data.log(NODIR)
-                    return
-            else:
+            inp.remove("mv")
+            parse.add_argument("new_dir")
+            parse.add_argument("dest_dir")
+            try:
+                line = parse.parse_args(inp)
+            except:
                 data.log(BADINPUT)
                 return
-            if line:
-                new_dir = line.pop()
-                if not os.path.isdir(new_dir) and not os.path.isfile(new_dir):
-                    data.log(NOFD)
-                    return
+            if (os.path.isfile(line.new_dir) or os.path.isdir(line.new_dir)) and os.path.isdir(line.dest.dir):
+                shutil.move(line.new_dir, line.dest_dir)
+                data.log(SUCCESS)
+                data.last_exec = "mv"
+                data.fr_dir = os.path.abspath(line.new_dir)
+                data.sc_dir = os.path.abspath(line.dest_dir)
             else:
-                data.log(BADINPUT)
-                return
-            if not line:
-                try:
-                    shutil.move(new_dir, dest_dir)
-                    data.log(SUCCESS)
-                    data.last_exec = "mv"
-                    data.fr_dir = os.path.abspath(new_dir)
-                    data.sc_dir = os.path.abspath(dest_dir)
-                    return
-                except:
-                    data.log(FAILED)
-
-            else:
-                data.log(BADINPUT)
+                data.log(NOFD)
 
         case "zip":
-            line.remove("zip")
-            if line:
-                name = line.pop()
-                if not line:
-                    data.log(BADINPUT)
-                    return
-                for sym in ["/", "\\", " ", ":", "*", "?", '"', "<", ">", "|"]:
-                    if sym in name:
-                        data.log(BADNAME)
-                        return
-                new_dir = line.pop()
-                if os.path.isdir(new_dir):
-                    try:
-                        shutil.make_archive(name, "zip", new_dir)
-                        data.log(SUCCESS)
-                    except:
-                        data.log(FAILED)
-                else:
-                    data.log(NODIR)
-            else:
+            inp.remove("zip")
+            parse.add_argument("new_dir")
+            parse.add_argument("fname")
+            try:
+                line = parse.parse_args(inp)
+            except:
                 data.log(BADINPUT)
+                return
+            for sym in ["/", "\\", " ", ":", "*", "?", '"', "<", ">", "|"]:
+                if sym in line.fname:
+                    data.log(BADNAME)
+                    return
+            if os.path.isdir(line.new_dir) or os.path.isfile(line.new_dir):
+                shutil.make_archive(line.fname, "zip", line.new_dir)
+                data.log(SUCCESS)
 
         case "unzip":
-            line.remove("unzip")
-            if line:
-                new_dir = line.pop()
-                if line:
-                    data.log(BADINPUT)
-                    return
-                if not os.path.isfile(new_dir) or ".zip" not in getname(new_dir):
-                    data.log(NOFILE)
-                    return
-                try:
-                    shutil.unpack_archive(new_dir, getname(new_dir).replace(".zip", ""), "zip")
-                    data.log(SUCCESS)
-                except:
-                    data.log(FAILED)
-                    return
-            else:
+            inp.remove("unzip")
+            parse.add_argument("new_dir")
+            try:
+                line = parse.parse_args(inp)
+            except:
                 data.log(BADINPUT)
                 return
+            if not os.path.isfile(line.new_dir) or ".zip" not in getname(line.new_dir):
+                data.log(NOFILE)
+                return
+            shutil.unpack_archive(line.new_dir, getname(line.new_dir).replace(".zip", ""), "zip")
+            data.log(SUCCESS)
 
         case "tar":
-            line.remove("tar")
-            if line:
-                name = line.pop()
-                if not line:
-                    data.log(BADINPUT)
-                    return
-                for sym in ["/", "\\", " ", ":", "*", "?", '"', "<", ">", "|"]:
-                    if sym in name:
-                        data.log(BADNAME)
-                        return
-                new_dir = line.pop()
-                if os.path.isdir(new_dir):
-                    try:
-                        shutil.make_archive(name, "gztar", new_dir)
-                        data.log(SUCCESS)
-                    except:
-                        data.log(FAILED)
-                else:
-                    data.log(NODIR)
-            else:
+            inp.remove("tar")
+            parse.add_argument("new_dir")
+            parse.add_argument("fname")
+            try:
+                line = parse.parse_args(inp)
+            except:
                 data.log(BADINPUT)
+                return
+            for sym in ["/", "\\", " ", ":", "*", "?", '"', "<", ">", "|"]:
+                if sym in line.fname:
+                    data.log(BADNAME)
+                    return
+            if os.path.isdir(line.new_dir) or os.path.isfile(line.new_dir):
+                shutil.make_archive(line.fname, "tar", line.new_dir)
+                data.log(SUCCESS)
 
         case "untar":
-            line.remove("untar")
-            if line:
-                new_dir = line.pop()
-                if line:
-                    data.log(BADINPUT)
-                    return
-                if not os.path.isfile(new_dir) or ".tar.gz" not in getname(new_dir):
-                    data.log(NOFILE)
-                    return
-                try:
-                    shutil.unpack_archive(new_dir, getname(new_dir).replace(".tar.gz", ""), "gztar")
-                    data.log(SUCCESS)
-                except:
-                    data.log(FAILED)
-                    return
-            else:
+            inp.remove("untar")
+            parse.add_argument("new_dir")
+            try:
+                line = parse.parse_args(inp)
+            except:
+                data.log(BADINPUT)
+                return
+            if not os.path.isfile(line.new_dir) or ".tar.gz" not in getname(line.new_dir):
+                data.log(NOFILE)
+                return
+            shutil.unpack_archive(line.new_dir, getname(line.new_dir).replace(".tar.gz", ""), "gztar")
+            data.log(SUCCESS)
+
+        case "history":
+            inp.remove("history")
+            parse.add_argument("num", nargs="?")
+            try:
+                line = parse.parse_args(inp)
+            except:
                 data.log(BADINPUT)
                 return
 
-        case "history":
-            line.remove("history")
-            if not line:
+            if not line.num:
                 with open(f"{data.init_dir}\\.history") as f:
                     f = f.readlines()
                     if len(f) >= 5:
@@ -272,35 +208,23 @@ def execute(line, data):
                         for ln in f:
                             a = ln.rstrip("\n")
                             data.log(f"#{f.index(ln) + 1} {a}")
-            else:
-                a = line.pop()
-                try:
-                    a = int(a)
-                except:
-                    data.log(BADINPUT)
-                    return
-                if a <= 0:
-                    data.log(BADINPUT)
-                    return
+            elif line.num.isdigit() and line.num > 0:
                 with open(f"{data.init_dir}\\.history") as f:
                     f = f.readlines()
-                    if not line and len(f) >= a:
-                        for i in range(a):
+                    if len(f) >= line.num:
+                        for i in range(line.num):
                             b = f[len(f) - i - 1].rstrip("\n")
-                            data.log(f"#{i + 1} {b}")
-                    elif len(f) < a:
+                            data.log(f"{i + 1}. {b}")
+                    elif len(f) < line.num:
                         data.log(OUTHIS)
-                    else:
-                        data.log(BADINPUT)
-
-        case "devlog":
-            print(data.init_dir, data.last_exec)
+            else:
+                data.log(BADINPUT)
 
         case "undo":
-            line.remove("undo")
-            if not line and data.undo():
+            inp.remove("undo")
+            if not inp and data.undo():
                 data.last_exec = None
-            elif line:
+            elif inp:
                 data.log(BADINPUT)
 
 
