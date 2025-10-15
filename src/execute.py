@@ -12,7 +12,7 @@ def execute(inp, data):
     inp = inp.split()
     parse = ArgumentParser(prog="command", exit_on_error=False)
     if inp[0] != "history":
-        data.hist(inp)
+        data.hist(" ".join(inp))
     match inp[0]:
         case "cd":
             inp.remove("cd")
@@ -21,9 +21,9 @@ def execute(inp, data):
             if not line.new_dir:
                 line.new_dir = "."
             try:
-                    os.chdir(line.new_dir)
+                os.chdir(line.new_dir)
             except:
-                    data.log(NODIR)
+                data.log(NODIR)
         case "ls":
             inp.remove("ls")
             parse.add_argument("-l", action="store_true")
@@ -75,7 +75,13 @@ def execute(inp, data):
                 data.log(BADINPUT)
                 return
             if os.path.isfile(line.new_dir) and not line.r:
-                os.remove(line.new_dir)
+                try:
+                    os.remove(line.new_dir)
+                    data.log(SUCCESS)
+                    data.last_exec = "rm"
+                    data.fr_dir = os.path.abspath(line.new_dir)
+                except:
+                    data.log(FAILED)
             elif os.path.isdir(line.new_dir) and line.r and confirm(line.new_dir, data):
                     data.log(SUCCESS)
                     data.last_exec = "rm"
@@ -94,17 +100,23 @@ def execute(inp, data):
                 data.log(BADINPUT)
                 return
             if os.path.isfile(line.new_dir) and os.path.isdir(line.new_dir) and not line.r:
-                shutil.copy(line.new_dir, line.dest_dir)
-                data.log(SUCCESS)
-                data.last_exec = "cp"
-                data.fr_dir = os.path.abspath(line.new_dir)
-                data.sc_dir = os.path.abspath(line.dest_dir)
+                try:
+                    shutil.copy(line.new_dir, line.dest_dir)
+                    data.log(SUCCESS)
+                    data.last_exec = "cp"
+                    data.fr_dir = os.path.abspath(line.new_dir)
+                    data.sc_dir = os.path.abspath(line.dest_dir)
+                except:
+                    data.log(FAILED)
             elif os.path.isdir(line.new_dir) and os.path.isdir(line.new_dir) and line.r:
-                shutil.copytree(line.new_dir, f"{line.dest_dir}/{getname(line.new_dir, True)}", dirs_exist_ok=True)
-                data.last_exec = "cp"
-                data.fr_dir = os.path.abspath(line.new_dir)
-                data.sc_dir = os.path.abspath(line.dest_dir)
-                data.log(SUCCESS)
+                try:
+                    shutil.copytree(line.new_dir, f"{line.dest_dir}/{getname(line.new_dir, True)}", dirs_exist_ok=True)
+                    data.last_exec = "cp"
+                    data.fr_dir = os.path.abspath(line.new_dir)
+                    data.sc_dir = os.path.abspath(line.dest_dir)
+                    data.log(SUCCESS)
+                except:
+                    data.log(FAILED)
             else:
                 data.log(NOFD)
 
@@ -117,12 +129,15 @@ def execute(inp, data):
             except:
                 data.log(BADINPUT)
                 return
-            if (os.path.isfile(line.new_dir) or os.path.isdir(line.new_dir)) and os.path.isdir(line.dest.dir):
-                shutil.move(line.new_dir, line.dest_dir)
-                data.log(SUCCESS)
-                data.last_exec = "mv"
-                data.fr_dir = os.path.abspath(line.new_dir)
-                data.sc_dir = os.path.abspath(line.dest_dir)
+            if (os.path.isfile(line.new_dir) or os.path.isdir(line.new_dir)) and os.path.isdir(line.dest_dir):
+                try:
+                    shutil.move(line.new_dir, line.dest_dir)
+                    data.log(SUCCESS)
+                    data.last_exec = "mv"
+                    data.fr_dir = os.path.abspath(line.new_dir)
+                    data.sc_dir = os.path.abspath(line.dest_dir)
+                except:
+                    data.log(FAILED)
             else:
                 data.log(NOFD)
 
@@ -140,8 +155,13 @@ def execute(inp, data):
                     data.log(BADNAME)
                     return
             if os.path.isdir(line.new_dir) or os.path.isfile(line.new_dir):
-                shutil.make_archive(line.fname, "zip", line.new_dir)
-                data.log(SUCCESS)
+                try:
+                    shutil.make_archive(line.fname, "zip", line.new_dir)
+                    data.log(SUCCESS)
+                except:
+                    data.log(FAILED)
+            else:
+                data.log(NOFD)
 
         case "unzip":
             inp.remove("unzip")
@@ -154,8 +174,11 @@ def execute(inp, data):
             if not os.path.isfile(line.new_dir) or ".zip" not in getname(line.new_dir):
                 data.log(NOFILE)
                 return
-            shutil.unpack_archive(line.new_dir, getname(line.new_dir).replace(".zip", ""), "zip")
-            data.log(SUCCESS)
+            try:
+                shutil.unpack_archive(line.new_dir, getname(line.new_dir).replace(".zip", ""), "zip")
+                data.log(SUCCESS)
+            except:
+                data.log(FAILED)
 
         case "tar":
             inp.remove("tar")
@@ -171,8 +194,13 @@ def execute(inp, data):
                     data.log(BADNAME)
                     return
             if os.path.isdir(line.new_dir) or os.path.isfile(line.new_dir):
-                shutil.make_archive(line.fname, "tar", line.new_dir)
-                data.log(SUCCESS)
+                try:
+                    shutil.make_archive(line.fname, "gztar", line.new_dir)
+                    data.log(SUCCESS)
+                except:
+                    data.log(FAILED)
+            else:
+                data.log(NOFD)
 
         case "untar":
             inp.remove("untar")
@@ -185,8 +213,11 @@ def execute(inp, data):
             if not os.path.isfile(line.new_dir) or ".tar.gz" not in getname(line.new_dir):
                 data.log(NOFILE)
                 return
-            shutil.unpack_archive(line.new_dir, getname(line.new_dir).replace(".tar.gz", ""), "gztar")
-            data.log(SUCCESS)
+            try:
+                shutil.unpack_archive(line.new_dir, getname(line.new_dir).replace(".tar.gz", ""), "gztar")
+                data.log(SUCCESS)
+            except:
+                data.log(FAILED)
 
         case "history":
             inp.remove("history")
@@ -208,7 +239,8 @@ def execute(inp, data):
                         for ln in f:
                             a = ln.rstrip("\n")
                             data.log(f"#{f.index(ln) + 1} {a}")
-            elif line.num.isdigit() and line.num > 0:
+            elif line.num.isdigit() and int(line.num) > 0:
+                line.num = int(line.num)
                 with open(f"{data.init_dir}\\.history") as f:
                     f = f.readlines()
                     if len(f) >= line.num:
@@ -222,10 +254,8 @@ def execute(inp, data):
 
         case "undo":
             inp.remove("undo")
-            if not inp and data.undo():
+            if data.undo():
                 data.last_exec = None
-            elif inp:
-                data.log(BADINPUT)
 
 
 
