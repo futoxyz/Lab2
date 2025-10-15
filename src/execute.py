@@ -1,6 +1,7 @@
 import os
 import shutil
 import datetime
+import shlex
 from argparse import ArgumentParser
 from src.confirmation import confirm
 from src.getname import getname
@@ -8,8 +9,14 @@ from src.constants import *
 
 
 def execute(inp, data):
+    '''
+    Обрабатывает ввод и выполняет команды. Для каждой команды происходит парсинг.
+    :param inp: Ввод пользователя.
+    :param data: Объект, хранящий в себе лишь исходную директорию, и позволяющий сохранять логи, историю и проводить undo.
+    :return: None
+    '''
     data.log(inp, False)
-    inp = inp.split()
+    inp = shlex.split(inp)
     parse = ArgumentParser(prog="Command", exit_on_error=False)
     if inp[0] != "history":
         data.hist(" ".join(inp))
@@ -23,7 +30,7 @@ def execute(inp, data):
                 data.log(BADINPUT)
                 return
             if not line.new_dir:
-                line.new_dir = "."
+                return
             try:
                 os.chdir(line.new_dir)
             except:
@@ -39,7 +46,7 @@ def execute(inp, data):
                 return
             if not line.new_dir:
                 line.new_dir = "."
-            if not os.path.isdir((line.new_dir)):
+            if not os.path.isdir(line.new_dir):
                 data.log(NODIR)
                 return
             if not line.l:
@@ -70,6 +77,9 @@ def execute(inp, data):
                     data.log("".join(f))
 
         case "rm":
+            '''
+            При успешном выполнении передает data команду rm директорию удаления, sc_dir остается без изменений.
+            '''
             inp.remove("rm")
             parse.add_argument("-r", action="store_true")
             parse.add_argument("new_dir")
@@ -88,6 +98,9 @@ def execute(inp, data):
                 except:
                     data.log(FAILED)
             elif os.path.isdir(line.new_dir) and line.r and confirm(line.new_dir, data):
+                    '''
+                    Выполняется при успешном подтверждении пользователя.
+                    '''
                     data.log(SUCCESS)
                     data.last_exec = "rm"
                     data.fr_dir = os.path.abspath(line.new_dir)
@@ -95,6 +108,9 @@ def execute(inp, data):
                 data.log(NOFD)
 
         case "cp":
+            '''
+            При успешном выполнении передает data команду cp, исходную директорию и директорию копирования.
+            '''
             inp.remove("cp")
             parse.add_argument("-r", action="store_true")
             parse.add_argument("new_dir")
@@ -126,6 +142,9 @@ def execute(inp, data):
                 data.log(NOFD)
 
         case "mv":
+            '''
+            При успешном выполнении передает data команду mv, исходную директорию и директорию перемещения.
+            '''
             inp.remove("mv")
             parse.add_argument("new_dir")
             parse.add_argument("dest_dir")
@@ -143,10 +162,14 @@ def execute(inp, data):
                     data.sc_dir = os.path.abspath(line.dest_dir)
                 except:
                     data.log(FAILED)
+                    return
             else:
                 data.log(NOFD)
 
         case "zip":
+            '''
+            Название архива не может содержать некоторые символы.
+            '''
             inp.remove("zip")
             parse.add_argument("new_dir")
             parse.add_argument("fname")
@@ -155,7 +178,7 @@ def execute(inp, data):
             except:
                 data.log(BADINPUT)
                 return
-            for sym in ["/", "\\", " ", ":", "*", "?", '"', "<", ">", "|"]:
+            for sym in ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]:
                 if sym in line.fname:
                     data.log(BADNAME)
                     return
@@ -194,7 +217,7 @@ def execute(inp, data):
             except:
                 data.log(BADINPUT)
                 return
-            for sym in ["/", "\\", " ", ":", "*", "?", '"', "<", ">", "|"]:
+            for sym in ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]:
                 if sym in line.fname:
                     data.log(BADNAME)
                     return
@@ -225,6 +248,9 @@ def execute(inp, data):
                 data.log(FAILED)
 
         case "history":
+            '''
+            По умолчанию выводит до 5 последних команд.
+            '''
             inp.remove("history")
             parse.add_argument("num", nargs="?")
             try:
@@ -258,7 +284,9 @@ def execute(inp, data):
                 data.log(BADINPUT)
 
         case "undo":
-            inp.remove("undo")
+            '''
+            При успешной отмене у объекта data последняя команда заменяется на None.
+            '''
             if data.undo():
                 data.last_exec = None
 

@@ -2,7 +2,14 @@ import shutil
 from src.getname import getname
 from src.constants import INVANS, RMREST, CANCEL
 
+
 def confirm(new_dir, data):
+    '''
+    Команда для rm с рекурсивным удалением, требующим подтверждение. Ждёт от пользователя окончательный ответ Y/N.
+    :param new_dir: Удаляемая директория.
+    :param data: Начальный объект data, хранящий исходную директорию.
+    :return: True, если удалось удалить, иначе None.
+    '''
     if new_dir == ".." or new_dir == "/":
         data.log(RMREST)
         return
