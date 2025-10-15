@@ -1,6 +1,6 @@
 import shutil
 from src.getname import getname
-from src.constants import INVANS, RMREST
+from src.constants import INVANS, RMREST, CANCEL
 
 def confirm(new_dir, data):
     if new_dir == ".." or new_dir == "/":
@@ -19,7 +19,7 @@ def confirm(new_dir, data):
             return True
         except:
             return
-
     else:
+        data.log(CANCEL)
         return
 

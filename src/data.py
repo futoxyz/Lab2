@@ -34,21 +34,37 @@ class Data:
             case "cp":
                 try:
                     if os.path.isdir(self.fr_dir):
-                        shutil.rmtree(f"{self.sc_dir}\\{getname(self.fr_dir)}")
-                    if os.path.isfile(self.fr_dir):
-                        os.remove(f"{self.sc_dir}\\{getname(self.fr_dir)}")
+                        try:
+                            shutil.rmtree(f"{self.sc_dir}\\{getname(self.fr_dir)}")
+                        except:
+                            Data.log(self, FAILED)
+                            return
+                    else:
+                        try:
+                            os.remove(f"{self.sc_dir}\\{getname(self.fr_dir)}")
+                        except:
+                            Data.log(self, FAILED)
+                            return
                     Data.log(self, SUCCESS)
                     return True
                 except:
                     Data.log(self, FAILED)
 
             case "rm":
-                try:
-                    shutil.move(f"{self.init_dir}\\.trash\\{getname(self.fr_dir)}", f"{self.fr_dir}\\..")
-                    Data.log(self, SUCCESS)
-                    return True
-                except:
-                    Data.log(self, FAILED)
+                if os.path.isdir(self.fr_dir):
+                    try:
+                        shutil.move(f"{self.init_dir}\\.trash\\{getname(self.fr_dir)}", f"{self.fr_dir}\\..")
+                    except:
+                        Data.log(self, FAILED)
+                        return
+                else:
+                    try:
+                        shutil.move(f"{self.init_dir}\\.trash\\{getname(self.fr_dir)}", f"{self.fr_dir}\\..")
+                    except:
+                        Data.log(self, FAILED)
+                        return
+                Data.log(self, SUCCESS)
+                return True
 
             case None:
                 Data.log(self, NOUNDO)

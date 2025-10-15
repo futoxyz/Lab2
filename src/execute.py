@@ -10,14 +10,18 @@ from src.constants import *
 def execute(inp, data):
     data.log(inp, False)
     inp = inp.split()
-    parse = ArgumentParser(prog="command", exit_on_error=False)
+    parse = ArgumentParser(prog="Command", exit_on_error=False)
     if inp[0] != "history":
         data.hist(" ".join(inp))
     match inp[0]:
         case "cd":
             inp.remove("cd")
             parse.add_argument("new_dir", nargs="?")
-            line = parse.parse_args(inp)
+            try:
+                line = parse.parse_args(inp)
+            except:
+                data.log(BADINPUT)
+                return
             if not line.new_dir:
                 line.new_dir = "."
             try:
@@ -76,6 +80,7 @@ def execute(inp, data):
                 return
             if os.path.isfile(line.new_dir) and not line.r:
                 try:
+                    shutil.copy(line.new_dir, f"{data.init_dir}\\.trash")
                     os.remove(line.new_dir)
                     data.log(SUCCESS)
                     data.last_exec = "rm"
@@ -86,7 +91,7 @@ def execute(inp, data):
                     data.log(SUCCESS)
                     data.last_exec = "rm"
                     data.fr_dir = os.path.abspath(line.new_dir)
-            else:
+            elif not os.path.isdir(line.new_dir) or not line.r:
                 data.log(NOFD)
 
         case "cp":
@@ -99,7 +104,7 @@ def execute(inp, data):
             except:
                 data.log(BADINPUT)
                 return
-            if os.path.isfile(line.new_dir) and os.path.isdir(line.new_dir) and not line.r:
+            if os.path.isfile(line.new_dir) and os.path.isdir(line.dest_dir) and not line.r:
                 try:
                     shutil.copy(line.new_dir, line.dest_dir)
                     data.log(SUCCESS)
@@ -108,7 +113,7 @@ def execute(inp, data):
                     data.sc_dir = os.path.abspath(line.dest_dir)
                 except:
                     data.log(FAILED)
-            elif os.path.isdir(line.new_dir) and os.path.isdir(line.new_dir) and line.r:
+            elif os.path.isdir(line.new_dir) and os.path.isdir(line.dest_dir) and line.r:
                 try:
                     shutil.copytree(line.new_dir, f"{line.dest_dir}/{getname(line.new_dir, True)}", dirs_exist_ok=True)
                     data.last_exec = "cp"
@@ -263,4 +268,4 @@ def execute(inp, data):
 
 
         case _:
-            data.log(BADINPUT)
+            data.log(NOCMD)
