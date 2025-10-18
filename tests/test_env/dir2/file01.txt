@@ -1,0 +1,3 @@
+This file supposed to stay in dir1/ and only be read.
+
+pattern is shown with no -i.
