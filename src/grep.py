@@ -7,12 +7,15 @@ def grep(pattern, file_dir, i):
             flag = re.IGNORECASE
         case False:
             flag = re.NOFLAG
-    with open(file_dir) as f:
-        lncount = 1
-        lns = []
-        for line in f:
-            if re.search(pattern, line, flag):
-                line = re.sub(pattern, f'"{pattern}"', line, flags=re.IGNORECASE)
-                lns.append(f"{file_dir}: {lncount}. {line}")
-            lncount += 1
-        return "".join(lns)
+    try:
+        with open(file_dir) as f:
+            lncount = 1
+            lns = []
+            for line in f:
+                if re.search(pattern, line, flag):
+                    line = re.sub(pattern, f'"{pattern}"', line, flags=re.IGNORECASE)
+                    lns.append(f"File {file_dir}: line {lncount} - {line}")
+                lncount += 1
+            return "".join(lns)
+    except:
+        return f"Could not search in {file_dir}\n"
