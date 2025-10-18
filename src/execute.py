@@ -3,6 +3,7 @@ import shutil
 import datetime
 import shlex
 from argparse import ArgumentParser
+from src.grep import grep
 from src.confirmation import confirm
 from src.getname import getname
 from src.constants import *
@@ -290,10 +291,30 @@ def execute(inp, data):
             if data.undo():
                 data.last_exec = None
 
-
-
-
-
+        case "grep":
+            inp.remove("grep")
+            parse.add_argument("pattern")
+            parse.add_argument("dir")
+            parse.add_argument("-i", action="store_true")
+            parse.add_argument("-r", action="store_true")
+            try:
+                line = parse.parse_args(inp)
+            except:
+                data.log(BADINPUT)
+                return
+            if os.path.isfile(line.dir) and not line.r:
+                res = grep(line.pattern, os.path.abspath(line.dir), line.i)[:-1]
+                data.log(res if res else NOTFOUND)
+            elif os.path.isdir(line.dir) and line.r:
+                complete_res = []
+                for address, dirs, files in os.walk(line.dir):
+                    for name in files:
+                        res = grep(line.pattern, os.path.join(address, name), line.i)
+                        if res:
+                            complete_res.append(res)
+                data.log("".join(complete_res) if complete_res else NOTFOUND)
+            else:
+                data.log(NOFD)
 
         case _:
             data.log(NOCMD)
