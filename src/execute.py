@@ -51,7 +51,7 @@ def execute(inp, data):
                 data.log(NODIR)
                 return
             if not line.l:
-                data.log(os.listdir(line.dir))
+                data.log("\n".join(os.listdir(line.dir)))
             else:
                 with os.scandir(line.dir) as files:
                     ls = []
