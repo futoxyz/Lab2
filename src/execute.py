@@ -17,7 +17,7 @@ def execute(inp, data):
     :return: None
     '''
     data.log(inp, False)
-    inp = shlex.split(inp)
+    inp = shlex.split(inp, posix=False)
     parse = ArgumentParser(prog="Command", exit_on_error=False)
     if inp[0] != "history":
         data.hist(" ".join(inp))
