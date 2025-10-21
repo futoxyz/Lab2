@@ -5,7 +5,6 @@ import shlex
 from argparse import ArgumentParser
 from src.grep import grep
 from src.confirmation import confirm
-from src.getname import getname
 from src.constants import *
 
 
@@ -91,21 +90,28 @@ def execute(inp, data):
                 return
             if os.path.isfile(line.rm_dir) and not line.r:
                 try:
-                    shutil.copy(line.rm_dir, f"{data.init_dir}\\.trash")
-                    os.remove(line.rm_dir)
+                    shutil.move(line.rm_dir, os.path.join(data.init_dir, ".trash"))
                     data.log(SUCCESS)
                     data.last_exec = "rm"
                     data.fr_dir = os.path.abspath(line.rm_dir)
                 except:
                     data.log(FAILED)
-            elif os.path.isdir(line.rm_dir) and line.r and confirm(line.rm_dir, data):
-                    '''
-                    Выполняется при успешном подтверждении пользователя.
-                    '''
-                    data.log(SUCCESS)
-                    data.last_exec = "rm"
-                    data.fr_dir = os.path.abspath(line.rm_dir)
-            elif not os.path.isdir(line.rm_dir) or not line.r:
+            elif os.path.isdir(line.rm_dir) and line.r:
+                if line.rm_dir == ".." or line.rm_dir == "/":
+                    data.log(RMREST)
+                    return
+                ans = confirm(data)
+                if ans:
+                    try:
+                        shutil.move(line.rm_dir, os.path.join(data.init_dir, ".trash", os.path.basename(line.rm_dir)))
+                        data.log(SUCCESS)
+                        data.last_exec = "rm"
+                        data.fr_dir = os.path.abspath(line.rm_dir)
+                    except:
+                        data.log(FAILED)
+                else:
+                    data.log(CANCEL)
+            else:
                 data.log(NOFD)
 
         case "cp":
@@ -132,7 +138,7 @@ def execute(inp, data):
                     data.log(FAILED)
             elif os.path.isdir(line.cp_dir) and os.path.isdir(line.dest_dir) and line.r:
                 try:
-                    shutil.copytree(line.cp_dir, f"{line.dest_dir}/{getname(line.cp_dir, True)}", dirs_exist_ok=True)
+                    shutil.copytree(line.cp_dir, os.path.join(line.dest_dir, os.path.basename(line.cp_dir)), dirs_exist_ok=True)
                     data.last_exec = "cp"
                     data.fr_dir = os.path.abspath(line.cp_dir)
                     data.sc_dir = os.path.abspath(line.dest_dir)
@@ -200,11 +206,11 @@ def execute(inp, data):
             except:
                 data.log(BADINPUT)
                 return
-            if not os.path.isfile(line.archive_dir) or ".zip" not in getname(line.archive_dir):
+            if not os.path.isfile(line.archive_dir) or ".zip" not in os.path.basename(line.archive_dir):
                 data.log(NOFILE)
                 return
             try:
-                shutil.unpack_archive(line.archive_dir, getname(line.archive_dir).replace(".zip", ""), "zip")
+                shutil.unpack_archive(line.archive_dir, os.path.basename(line.archive_dir).replace(".zip", ""), "zip")
                 data.log(SUCCESS)
             except:
                 data.log(FAILED)
@@ -239,11 +245,11 @@ def execute(inp, data):
             except:
                 data.log(BADINPUT)
                 return
-            if not os.path.isfile(line.archive_dir) or ".tar.gz" not in getname(line.archive_dir):
+            if not os.path.isfile(line.archive_dir) or ".tar.gz" not in os.path.basename(line.archive_dir):
                 data.log(NOFILE)
                 return
             try:
-                shutil.unpack_archive(line.archive_dir, getname(line.archive_dir).replace(".tar.gz", ""), "gztar")
+                shutil.unpack_archive(line.archive_dir, os.path.basename(line.archive_dir).replace(".tar.gz", ""), "gztar")
                 data.log(SUCCESS)
             except:
                 data.log(FAILED)
@@ -261,24 +267,29 @@ def execute(inp, data):
                 return
 
             if not line.num:
-                with open(f"{data.init_dir}\\.history") as f:
+                with open(os.path.join(data.init_dir, ".history")) as f:
                     f = f.readlines()
+                    lns = []
                     if len(f) >= 5:
                         for i in range(5):
                             a = f[len(f) - i - 1].rstrip("\n")
-                            data.log(f"#{i + 1} {a}")
+                            lns.append(f"{i + 1}. {a}")
+                        data.log("\n".join(lns))
                     else:
                         for ln in f:
                             a = ln.rstrip("\n")
-                            data.log(f"#{f.index(ln) + 1} {a}")
+                            lns.append(f"{f.index(ln) + 1}. {a}")
+                        data.log("\n".join(lns))
             elif line.num.isdigit() and int(line.num) > 0:
                 line.num = int(line.num)
-                with open(f"{data.init_dir}\\.history") as f:
+                with open(os.path.join(data.init_dir, ".history")) as f:
                     f = f.readlines()
+                    lns = []
                     if len(f) >= line.num:
                         for i in range(line.num):
                             b = f[len(f) - i - 1].rstrip("\n")
-                            data.log(f"{i + 1}. {b}")
+                            lns.append(f"{i + 1}. {b}")
+                        data.log("\n".join(lns))
                     elif len(f) < line.num:
                         data.log(OUTHIS)
             else:

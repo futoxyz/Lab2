@@ -1,7 +1,6 @@
 import datetime
 import os
 from src.constants import FAILED, SUCCESS, NOUNDO
-from src.getname import getname
 import shutil
 
 class Data:
@@ -27,7 +26,7 @@ class Data:
         '''
         if userprint:
             print(s)
-        with open(f"{self.init_dir}\\shell.log", "a") as f:
+        with open(os.path.join(self.init_dir, "shell.log"), "a") as f:
             f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {s}\n")
 
     def hist(self, s):
@@ -36,7 +35,7 @@ class Data:
         :param s: Введённая оманда.
         :return: Ничего не возвращает.
         '''
-        with open(f"{self.init_dir}\\.history", "a") as f:
+        with open(os.path.join(self.init_dir, ".history"), "a") as f:
             f.write(f"{s}\n")
 
     def undo(self):
@@ -48,7 +47,7 @@ class Data:
         match self.last_exec:
             case "mv":
                 try:
-                    shutil.move(f"{self.sc_dir}\\{getname(self.fr_dir)}", f"{self.fr_dir}\\..")
+                    shutil.move(os.path.join(self.sc_dir, os.path.basename(self.fr_dir)), os.path.join(self.fr_dir, ".."))
                     Data.log(self, SUCCESS)
                     return True
                 except:
@@ -58,13 +57,13 @@ class Data:
                 try:
                     if os.path.isdir(self.fr_dir):
                         try:
-                            shutil.rmtree(f"{self.sc_dir}\\{getname(self.fr_dir)}")
+                            shutil.move(os.path.join(self.sc_dir, os.path.basename(self.fr_dir)), os.path.join(self.init_dir, ".trash"))
                         except:
                             Data.log(self, FAILED)
                             return
                     else:
                         try:
-                            os.remove(f"{self.sc_dir}\\{getname(self.fr_dir)}")
+                            os.remove(os.path.join(self.sc_dir, os.path.basename(self.fr_dir)))
                         except:
                             Data.log(self, FAILED)
                             return
@@ -75,14 +74,10 @@ class Data:
 
             case "rm":
                 if os.path.isdir(self.fr_dir):
-                    try:
-                        shutil.move(f"{self.init_dir}\\.trash\\{getname(self.fr_dir)}", f"{self.fr_dir}\\..")
-                    except:
-                        Data.log(self, FAILED)
-                        return
+                    shutil.move(os.path.join(self.init_dir, ".trash", os.path.basename(self.fr_dir)), os.path.join(self.fr_dir, ".."))
                 else:
                     try:
-                        shutil.move(f"{self.init_dir}\\.trash\\{getname(self.fr_dir)}", f"{self.fr_dir}\\..")
+                        shutil.move(os.path.join(self.init_dir, ".trash", os.path.basename(self.fr_dir)),  os.path.join(self.fr_dir, ".."))
                     except:
                         Data.log(self, FAILED)
                         return
@@ -91,8 +86,3 @@ class Data:
 
             case None:
                 Data.log(self, NOUNDO)
-
-
-
-
-

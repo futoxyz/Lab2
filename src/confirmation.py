@@ -1,18 +1,12 @@
-import shutil
-from src.getname import getname
-from src.constants import INVANS, RMREST, CANCEL
+from src.constants import INVANS
 
 
-def confirm(rm_dir, data):
+def confirm(data):
     '''
-    Команда для rm с рекурсивным удалением, требующим подтверждение. Ждёт от пользователя окончательный ответ Y/N.
-    :param new_dir: Удаляемая директория.
-    :param data: Начальный объект data, хранящий исходную директорию.
-    :return: True, если удалось удалить, иначе None.
+    Команда, требующая от пользователя ответ Y/N.
+    :param data: Начальный объект data. Используется для логгирования в исходной директории.
+    :return: True, если удалось удалить, иначе False.
     '''
-    if rm_dir == ".." or rm_dir == "/":
-        data.log(RMREST)
-        return
     enter = str(input("Do you want to continue? (Y/N) > "))
     data.log(enter, False)
     while enter not in ["Y", "y", "N", "n"]:
@@ -20,13 +14,6 @@ def confirm(rm_dir, data):
         enter = str(input("Do you want to continue? (Y/N) > "))
         data.log(enter, False)
     if enter in ["Y", "y"]:
-        try:
-            shutil.copytree(rm_dir, f"{data.init_dir}\\.trash\\{getname(rm_dir, True)}")
-            shutil.rmtree(rm_dir)
-            return True
-        except:
-            return
+        return True
     else:
-        data.log(CANCEL)
-        return
-
+        return False
