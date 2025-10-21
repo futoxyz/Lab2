@@ -2,6 +2,13 @@ import re
 
 
 def grep(pattern, file_dir, i):
+    '''
+    Ищет шаблон в файле. Учёт регистра определяет i.
+    :param pattern: Шаблон.
+    :param file_dir: Директория файла.
+    :param i: Если поиск без учёта регистра - True, иначе False.
+    :return: Все найденные строки с выделенным шаблоном. Если файл не удалось прочитать - передает ошибку.
+    '''
     match i:
         case True:
             flag = re.IGNORECASE

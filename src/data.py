@@ -6,7 +6,7 @@ import shutil
 class Data:
     def __init__(self, init_dir, last_exec=None, fr_dir=None, sc_dir=None):
         '''
-        Класс для хранения информации об исходной директории и команд для undo.
+        Класс для хранения информации об исходной директории и команд и данных для undo.
         :param init_dir: Начальная директория.
         :param last_exec: Последняя выполненная команда из трёх: rm, cp, mv.
         :param fr_dir: Исходная директория, над которой проводилась команда.
@@ -32,7 +32,7 @@ class Data:
     def hist(self, s):
         '''
         Сохраняет команды пользователя в файл .history
-        :param s: Введённая оманда.
+        :param s: Введённая команда.
         :return: Ничего не возвращает.
         '''
         with open(os.path.join(self.init_dir, ".history"), "a") as f:

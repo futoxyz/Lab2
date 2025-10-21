@@ -3,9 +3,9 @@ from src.constants import INVANS
 
 def confirm(data):
     '''
-    Команда, требующая от пользователя ответ Y/N.
+    Функция, требующая от пользователя ответ Y/N.
     :param data: Начальный объект data. Используется для логгирования в исходной директории.
-    :return: True, если удалось удалить, иначе False.
+    :return: True, если получено подтверждение, иначе False.
     '''
     enter = str(input("Do you want to continue? (Y/N) > "))
     data.log(enter, False)
