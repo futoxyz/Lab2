@@ -48,7 +48,7 @@ class Data:
             case "mv":
                 try:
                     shutil.move(os.path.join(self.sc_dir, os.path.basename(self.fr_dir)), os.path.join(self.fr_dir, ".."))
-                    Data.log(self, SUCCESS)
+                    Data.log(self, SUCCESS, False)
                     return True
                 except:
                     Data.log(self, FAILED)
@@ -57,7 +57,7 @@ class Data:
                 try:
                     if os.path.isdir(self.fr_dir):
                         try:
-                            shutil.move(os.path.join(self.sc_dir, os.path.basename(self.fr_dir)), os.path.join(self.init_dir, ".trash"))
+                            shutil.rmtree(os.path.join(self.sc_dir, os.path.basename(self.fr_dir)))
                         except:
                             Data.log(self, FAILED)
                             return
@@ -67,7 +67,7 @@ class Data:
                         except:
                             Data.log(self, FAILED)
                             return
-                    Data.log(self, SUCCESS)
+                    Data.log(self, SUCCESS, False)
                     return True
                 except:
                     Data.log(self, FAILED)
@@ -81,7 +81,7 @@ class Data:
                     except:
                         Data.log(self, FAILED)
                         return
-                Data.log(self, SUCCESS)
+                Data.log(self, SUCCESS, False)
                 return True
 
             case None:

@@ -91,7 +91,7 @@ def execute(inp, data):
             if os.path.isfile(line.rm_dir) and not line.r:
                 try:
                     shutil.move(line.rm_dir, os.path.join(data.init_dir, ".trash"))
-                    data.log(SUCCESS)
+                    data.log(SUCCESS, False)
                     data.last_exec = "rm"
                     data.fr_dir = os.path.abspath(line.rm_dir)
                 except:
@@ -104,7 +104,7 @@ def execute(inp, data):
                 if ans:
                     try:
                         shutil.move(line.rm_dir, os.path.join(data.init_dir, ".trash", os.path.basename(line.rm_dir)))
-                        data.log(SUCCESS)
+                        data.log(SUCCESS, False)
                         data.last_exec = "rm"
                         data.fr_dir = os.path.abspath(line.rm_dir)
                     except:
@@ -130,7 +130,7 @@ def execute(inp, data):
             if os.path.isfile(line.cp_dir) and os.path.isdir(line.dest_dir) and not line.r:
                 try:
                     shutil.copy(line.cp_dir, line.dest_dir)
-                    data.log(SUCCESS)
+                    data.log(SUCCESS, False)
                     data.last_exec = "cp"
                     data.fr_dir = os.path.abspath(line.cp_dir)
                     data.sc_dir = os.path.abspath(line.dest_dir)
@@ -142,7 +142,7 @@ def execute(inp, data):
                     data.last_exec = "cp"
                     data.fr_dir = os.path.abspath(line.cp_dir)
                     data.sc_dir = os.path.abspath(line.dest_dir)
-                    data.log(SUCCESS)
+                    data.log(SUCCESS, False)
                 except:
                     data.log(FAILED)
             else:
@@ -163,7 +163,7 @@ def execute(inp, data):
             if (os.path.isfile(line.mv_dir) or os.path.isdir(line.mv_dir)) and os.path.isdir(line.dest_dir):
                 try:
                     shutil.move(line.mv_dir, line.dest_dir)
-                    data.log(SUCCESS)
+                    data.log(SUCCESS, False)
                     data.last_exec = "mv"
                     data.fr_dir = os.path.abspath(line.mv_dir)
                     data.sc_dir = os.path.abspath(line.dest_dir)
@@ -192,7 +192,7 @@ def execute(inp, data):
             if os.path.isdir(line.archive_dir) or os.path.isfile(line.archive_dir):
                 try:
                     shutil.make_archive(line.fname, "zip", line.archive_dir)
-                    data.log(SUCCESS)
+                    data.log(SUCCESS, False)
                 except:
                     data.log(FAILED)
             else:
@@ -211,7 +211,7 @@ def execute(inp, data):
                 return
             try:
                 shutil.unpack_archive(line.archive_dir, os.path.basename(line.archive_dir).replace(".zip", ""), "zip")
-                data.log(SUCCESS)
+                data.log(SUCCESS, False)
             except:
                 data.log(FAILED)
 
@@ -231,7 +231,7 @@ def execute(inp, data):
             if os.path.isdir(line.archive_dir) or os.path.isfile(line.archive_dir):
                 try:
                     shutil.make_archive(line.fname, "gztar", line.archive_dir)
-                    data.log(SUCCESS)
+                    data.log(SUCCESS, False)
                 except:
                     data.log(FAILED)
             else:
@@ -250,7 +250,7 @@ def execute(inp, data):
                 return
             try:
                 shutil.unpack_archive(line.archive_dir, os.path.basename(line.archive_dir).replace(".tar.gz", ""), "gztar")
-                data.log(SUCCESS)
+                data.log(SUCCESS, False)
             except:
                 data.log(FAILED)
 
