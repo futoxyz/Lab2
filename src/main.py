@@ -1,4 +1,4 @@
-from os import getcwd
+import os
 from src.data import Data
 from src.execute import execute
 
@@ -8,8 +8,11 @@ def run():
     Функция запуска. Передает исходный путь объекту data, затем проводит цикл ввода.
     :return: Ничего не возвращает.
     '''
-    data = Data(getcwd())
-    while inp := input(f"{getcwd()} > "):
+    init_dir = os.getcwd()
+    if not os.path.isdir(os.path.join(init_dir, ".trash")):
+        os.mkdir(os.path.join(init_dir, ".trash"))
+    data = Data(init_dir)
+    while inp := input(f"{os.getcwd()} > "):
         execute(inp, data)
 
 

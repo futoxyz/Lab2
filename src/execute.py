@@ -91,9 +91,9 @@ def execute(inp, data):
             if os.path.isfile(line.rm_dir) and not line.r:
                 try:
                     shutil.move(line.rm_dir, os.path.join(data.init_dir, ".trash"))
-                    data.log(SUCCESS, False)
                     data.last_exec = "rm"
                     data.fr_dir = os.path.abspath(line.rm_dir)
+                    data.log(SUCCESS, False)
                 except:
                     data.log(FAILED)
             elif os.path.isdir(line.rm_dir) and line.r:
@@ -104,9 +104,9 @@ def execute(inp, data):
                 if ans:
                     try:
                         shutil.move(line.rm_dir, os.path.join(data.init_dir, ".trash", os.path.basename(line.rm_dir)))
-                        data.log(SUCCESS, False)
                         data.last_exec = "rm"
                         data.fr_dir = os.path.abspath(line.rm_dir)
+                        data.log(SUCCESS, False)
                     except:
                         data.log(FAILED)
                 else:
@@ -130,10 +130,10 @@ def execute(inp, data):
             if os.path.isfile(line.cp_dir) and os.path.isdir(line.dest_dir) and not line.r:
                 try:
                     shutil.copy(line.cp_dir, line.dest_dir)
-                    data.log(SUCCESS, False)
                     data.last_exec = "cp"
                     data.fr_dir = os.path.abspath(line.cp_dir)
                     data.sc_dir = os.path.abspath(line.dest_dir)
+                    data.log(SUCCESS, False)
                 except:
                     data.log(FAILED)
             elif os.path.isdir(line.cp_dir) and os.path.isdir(line.dest_dir) and line.r:
@@ -163,10 +163,10 @@ def execute(inp, data):
             if (os.path.isfile(line.mv_dir) or os.path.isdir(line.mv_dir)) and os.path.isdir(line.dest_dir):
                 try:
                     shutil.move(line.mv_dir, line.dest_dir)
-                    data.log(SUCCESS, False)
                     data.last_exec = "mv"
                     data.fr_dir = os.path.abspath(line.mv_dir)
                     data.sc_dir = os.path.abspath(line.dest_dir)
+                    data.log(SUCCESS, False)
                 except:
                     data.log(FAILED)
                     return
@@ -270,15 +270,17 @@ def execute(inp, data):
                 with open(os.path.join(data.init_dir, ".history")) as f:
                     f = f.readlines()
                     lns = []
-                    if len(f) >= 5:
-                        for i in range(5):
+                    if len(f) > 15:
+                        for i in range(16):
                             a = f[len(f) - i - 1].rstrip("\n")
                             lns.append(f"{i + 1}. {a}")
                         data.log("\n".join(lns))
                     else:
+                        i = 1
                         for ln in f:
                             a = ln.rstrip("\n")
-                            lns.append(f"{f.index(ln) + 1}. {a}")
+                            lns.append(f"{i}. {a}")
+                            i += 1
                         data.log("\n".join(lns))
             elif line.num.isdigit() and int(line.num) > 0:
                 line.num = int(line.num)
