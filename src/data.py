@@ -1,12 +1,13 @@
-import datetime
 import os
-from src.constants import FAILED, SUCCESS, NOUNDO
 import shutil
+from datetime import datetime
+from src.constants import FAILED, SUCCESS, NOUNDO
+
 
 class Data:
     def __init__(self, init_dir, last_exec=None, fr_dir=None, sc_dir=None):
         '''
-        Класс для хранения информации об исходной директории и команд и данных для undo.
+        Класс для хранения информации об исходной директории, а также команд и данных для undo.
         :param init_dir: Начальная директория.
         :param last_exec: Последняя выполненная команда из трёх: rm, cp, mv.
         :param fr_dir: Исходная директория, над которой проводилась команда.
@@ -21,13 +22,13 @@ class Data:
         '''
         Сохраняет логи в файл shell.log, находящийся в исходной директории.
         :param s: Текст для лога.
-        :param userprint: Выводит этот же текст в консоль по умолчанию.
+        :param userprint: Выводит этот же текст пользователю по умолчанию.
         :return: Ничего не возвращает.
         '''
         if userprint:
             print(s)
         with open(os.path.join(self.init_dir, "shell.log"), "a") as f:
-            f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {s}\n")
+            f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {s}\n")
 
     def hist(self, s):
         '''

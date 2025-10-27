@@ -45,7 +45,7 @@ def execute(inp, data):
                 data.log(BADINPUT)
                 return
             if not line.dir:
-                line.dir = "."
+                line.dir = os.getcwd()
             if not os.path.isdir(line.dir):
                 data.log(NODIR)
                 return
@@ -72,9 +72,9 @@ def execute(inp, data):
                 return
             if not os.path.isfile(line.file_dir):
                 data.log(NOFILE)
-            else:
-                with open(line.file_dir) as f:
-                    data.log("".join(f))
+                return
+            with open(line.file_dir) as f:
+                data.log("".join(f))
 
         case "rm":
             '''
@@ -98,6 +98,9 @@ def execute(inp, data):
                     data.log(FAILED)
             elif os.path.isdir(line.rm_dir) and line.r:
                 if line.rm_dir == ".." or line.rm_dir == "/":
+                    '''
+                    Дополнительная проверка на то, что удаляется не корневой или родительский каталог.
+                    '''
                     data.log(RMREST)
                     return
                 ans = confirm(data)
@@ -256,7 +259,7 @@ def execute(inp, data):
 
         case "history":
             '''
-            По умолчанию выводит 5 (или меньше) последних команд.
+            По умолчанию выводит 16 (или меньше) последних команд.
             '''
             inp.remove("history")
             parse.add_argument("num", nargs="?")
@@ -265,7 +268,6 @@ def execute(inp, data):
             except:
                 data.log(BADINPUT)
                 return
-
             if not line.num:
                 with open(os.path.join(data.init_dir, ".history")) as f:
                     f = f.readlines()
@@ -278,11 +280,10 @@ def execute(inp, data):
                     else:
                         i = 1
                         for ln in f:
-                            a = ln.rstrip("\n")
-                            lns.append(f"{i}. {a}")
+                            lns.append(f"{i}. {ln.rstrip("\n")}")
                             i += 1
                         data.log("\n".join(lns))
-            elif line.num.isdigit() and int(line.num) > 0:
+            elif line.num.isdigit() and int(line.num) != 0:
                 line.num = int(line.num)
                 with open(os.path.join(data.init_dir, ".history")) as f:
                     f = f.readlines()
