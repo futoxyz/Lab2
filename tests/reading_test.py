@@ -13,8 +13,8 @@ def reading_test():
     init_dir = os.path.join(os.getcwd(), "tests")
     os.chdir(init_dir)
     data = Data(init_dir)
-    assert execute("cat test_env/file1.txt", data) == "This file supposed to be moved."
-    assert execute("cat          test_env/file2.txt", data) == "This file supposed to be copied."
+    assert execute("cat test_env/dir2/file0.txt", data) == 'This file supposed to stay in dir2/ and only be read.\n\nPattern is shown with -i.'
+    assert execute("cat          test_env\\dir2\\file01.txt", data) == 'This file supposed to stay in dir1/ and     only be read.\n\npattern is shown with no -i.'
     assert execute("cat nonexistingfile.txt", data) == "ERROR: No such file in directory"
     assert execute("cat first_argument.txt exceptional_argument", data) == "ERROR: Wrong command input"
     assert grep("pattern", os.path.join(init_dir, "test_env", "dir2", "file0.txt"), False) == "No pattern was found"
