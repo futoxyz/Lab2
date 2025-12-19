@@ -106,7 +106,8 @@ def execute(inp, data):
                 ans = confirm(data)
                 if ans:
                     try:
-                        shutil.move(line.rm_dir, os.path.join(data.init_dir, ".trash", os.path.basename(line.rm_dir)))
+                        shutil.copy(line.rm_dir, os.path.join(data.init_dir, ".trash", os.path.basename(line.rm_dir)))
+                        shutil.rmtree(line.rm_dir)
                         data.last_exec = "rm"
                         data.fr_dir = os.path.abspath(line.rm_dir)
                         data.log(SUCCESS, False)
@@ -188,10 +189,6 @@ def execute(inp, data):
             except:
                 data.log(BADINPUT)
                 return
-            for sym in ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]:
-                if sym in line.fname:
-                    data.log(BADNAME)
-                    return
             if os.path.isdir(line.archive_dir) or os.path.isfile(line.archive_dir):
                 try:
                     shutil.make_archive(line.fname, "zip", line.archive_dir)
@@ -227,10 +224,6 @@ def execute(inp, data):
             except:
                 data.log(BADINPUT)
                 return
-            for sym in ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]:
-                if sym in line.fname:
-                    data.log(BADNAME)
-                    return
             if os.path.isdir(line.archive_dir) or os.path.isfile(line.archive_dir):
                 try:
                     shutil.make_archive(line.fname, "gztar", line.archive_dir)

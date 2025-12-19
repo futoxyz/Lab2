@@ -55,23 +55,12 @@ class Data:
                     Data.log(self, FAILED)
 
             case "cp":
-                try:
-                    if os.path.isdir(self.fr_dir):
-                        try:
-                            shutil.rmtree(os.path.join(self.sc_dir, os.path.basename(self.fr_dir)))
-                        except:
-                            Data.log(self, FAILED)
-                            return
-                    else:
-                        try:
-                            os.remove(os.path.join(self.sc_dir, os.path.basename(self.fr_dir)))
-                        except:
-                            Data.log(self, FAILED)
-                            return
-                    Data.log(self, SUCCESS, False)
-                    return True
-                except:
-                    Data.log(self, FAILED)
+                if os.path.isdir(self.fr_dir):
+                    shutil.rmtree(os.path.join(self.sc_dir, os.path.basename(self.fr_dir)))
+                else:
+                    os.remove(os.path.join(self.sc_dir, os.path.basename(self.fr_dir)))
+                Data.log(self, SUCCESS, False)
+                return True
 
             case "rm":
                 if os.path.isdir(self.fr_dir):
